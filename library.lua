@@ -1,12 +1,13 @@
 --[[
-    ✨ NEON GLASS UI LIBRARY v4.0 (ULTIMATE ANIMATED)
-    - 0% Bugs, 100% Smooth
-    - Bouncy UI, Glassmorphism, Neon Strokes
-    - Fully OOP Based
+    💠 FLUENT DESIGN UI LIBRARY
+    - Theme: Windows 11 / Fluent (Acrylic Dark)
+    - Animations: Smooth, Clean, Professional (Quint Easing)
+    - Elements: Tab, Button, Toggle, Slider
+    - 0% Bugs, OOP Based
 ]]
 
-local Library = {}
-Library.__index = Library
+local FluentLib = {}
+FluentLib.__index = FluentLib
 
 -- [ SERVICES ]
 local TweenService = game:GetService("TweenService")
@@ -14,220 +15,243 @@ local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 
--- [ HELPER FUNCTION: TWEEN ]
-local function Tween(instance, duration, properties, style, direction)
-    style = style or Enum.EasingStyle.Quad
-    direction = direction or Enum.EasingDirection.Out
-    local tween = TweenService:Create(instance, TweenInfo.new(duration, style, direction), properties)
+-- [ THEME (Fluent Dark) ]
+local Colors = {
+    Acrylic = Color3.fromRGB(32, 32, 32),
+    Sidebar = Color3.fromRGB(24, 24, 24),
+    Stroke = Color3.fromRGB(255, 255, 255),
+    Accent = Color3.fromRGB(0, 120, 212), -- Windows Blue
+    Text = Color3.fromRGB(255, 255, 255),
+    TextMuted = Color3.fromRGB(180, 180, 180),
+    ElementBg = Color3.fromRGB(45, 45, 45),
+    ElementHover = Color3.fromRGB(55, 55, 55)
+}
+
+-- [ HELPER: TWEEN ]
+local function Tween(obj, dur, props)
+    local tween = TweenService:Create(obj, TweenInfo.new(dur, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), props)
     tween:Play()
     return tween
 end
 
 -- ==========================================
--- 1. MAIN WINDOW (สร้างหน้าต่างหลัก)
+-- 1. WINDOW (หน้าต่างหลัก)
 -- ==========================================
-function Library.new(HubName)
-    local self = setmetatable({}, Library)
-    self.Tabs = {} -- เก็บหน้ารวมไว้สลับ
+function FluentLib.new(Title)
+    local self = setmetatable({}, FluentLib)
+    self.Tabs = {}
     
     -- Main GUI
     self.Gui = Instance.new("ScreenGui")
-    self.Gui.Name = "NeonGlassHub_" .. tostring(math.random(1000, 9999))
-    self.Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    self.Gui.Name = "FluentHub_" .. tostring(math.random(1000, 9999))
     pcall(function() self.Gui.Parent = CoreGui end)
     if not self.Gui.Parent then self.Gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-    -- Main Window (CanvasGroup สำหรับทำลูกเล่นโปร่งแสงและ Fade)
+    -- Main Container
     self.Main = Instance.new("CanvasGroup", self.Gui)
-    self.Main.Size = UDim2.new(0, 550, 0, 380)
-    self.Main.Position = UDim2.new(0.5, -275, 0.5, -190)
-    self.Main.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-    self.Main.BackgroundTransparency = 0.2 -- กระจกใส
-    self.Main.GroupTransparency = 1 -- เตรียมโผล่
+    self.Main.Size = UDim2.new(0, 600, 0, 400)
+    self.Main.Position = UDim2.new(0.5, -300, 0.5, -200)
+    self.Main.BackgroundColor3 = Colors.Acrylic
+    self.Main.BackgroundTransparency = 0.1 -- Mica Effect
+    self.Main.GroupTransparency = 1
+    Instance.new("UICorner", self.Main).CornerRadius = UDim.new(0, 8) -- มุมโค้งมนแบบ Fluent
     
-    -- มุมโค้ง & ขอบเรืองแสง (Neon)
-    Instance.new("UICorner", self.Main).CornerRadius = UDim.new(0, 12)
-    local UIStroke = Instance.new("UIStroke", self.Main)
-    UIStroke.Color = Color3.fromRGB(80, 140, 255)
-    UIStroke.Thickness = 2
-    UIStroke.Transparency = 0.3
+    local MainStroke = Instance.new("UIStroke", self.Main)
+    MainStroke.Color = Colors.Stroke
+    MainStroke.Transparency = 0.9 -- ขอบบางๆ สไตล์ Fluent
+    MainStroke.Thickness = 1
 
-    -- สเกลสำหรับอนิเมชั่นเด้ง
-    self.Scale = Instance.new("UIScale", self.Main)
-    self.Scale.Scale = 0.5
-
-    -- Sidebar (เมนูด้านซ้าย)
+    -- Sidebar
     self.Sidebar = Instance.new("Frame", self.Main)
-    self.Sidebar.Size = UDim2.new(0, 150, 1, 0)
-    self.Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
-    self.Sidebar.BackgroundTransparency = 0.5
+    self.Sidebar.Size = UDim2.new(0, 160, 1, 0)
+    self.Sidebar.BackgroundColor3 = Colors.Sidebar
+    self.Sidebar.BackgroundTransparency = 0.3
     self.Sidebar.BorderSizePixel = 0
     
     local SideLayout = Instance.new("UIListLayout", self.Sidebar)
-    SideLayout.Padding = UDim.new(0, 8)
+    SideLayout.Padding = UDim.new(0, 5)
     SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    
-    -- โลโก้ / ชื่อ Hub
-    local Title = Instance.new("TextLabel", self.Sidebar)
-    Title.Size = UDim2.new(1, 0, 0, 60)
-    Title.BackgroundTransparency = 1
-    Title.Text = HubName
-    Title.Font = Enum.Font.GothamBold
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 16
 
-    -- Container สำหรับเก็บหน้า Tab (ด้านขวา)
+    -- Title
+    local TitleLabel = Instance.new("TextLabel", self.Sidebar)
+    TitleLabel.Size = UDim2.new(1, 0, 0, 60)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = Title
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextColor3 = Colors.Text
+    TitleLabel.TextSize = 14
+
+    -- Content Area
     self.Container = Instance.new("Frame", self.Main)
-    self.Container.Position = UDim2.new(0, 160, 0, 15)
-    self.Container.Size = UDim2.new(1, -170, 1, -30)
+    self.Container.Position = UDim2.new(0, 170, 0, 15)
+    self.Container.Size = UDim2.new(1, -180, 1, -30)
     self.Container.BackgroundTransparency = 1
 
-    -- [ ANIMATION: เปิดหน้าต่างแบบเด้งๆ ]
-    Tween(self.Scale, 0.5, {Scale = 1}, Enum.EasingStyle.Back)
-    Tween(self.Main, 0.4, {GroupTransparency = 0})
+    -- Start Animation (Fade & Slide in)
+    self.Main.Position = UDim2.new(0.5, -300, 0.5, -180)
+    Tween(self.Main, 0.6, {Position = UDim2.new(0.5, -300, 0.5, -200), GroupTransparency = 0})
 
-    -- [ ระบบลากหน้าต่าง (Smooth Drag) ]
-    local dragging, dragStart, startPos
+    -- Dragging
+    local dragToggle, dragStart, startPos
     self.Main.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true; dragStart = input.Position; startPos = self.Main.Position
+            dragToggle = true; dragStart = input.Position; startPos = self.Main.Position
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragToggle and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
             self.Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
     UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragToggle = false end
     end)
 
     return self
 end
 
 -- ==========================================
--- 2. TAB SYSTEM (ระบบสลับหน้า)
+-- 2. TABS (ระบบสลับหน้า)
 -- ==========================================
-function Library:CreateTab(TabName)
+function FluentLib:CreateTab(TabName)
     local TabFuncs = {}
     
-    -- ปุ่มกดเลือก Tab
     local TabBtn = Instance.new("TextButton", self.Sidebar)
-    TabBtn.Size = UDim2.new(0.85, 0, 0, 35)
-    TabBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    TabBtn.BackgroundTransparency = 0.5
-    TabBtn.Text = TabName
-    TabBtn.Font = Enum.Font.GothamMedium
-    TabBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    TabBtn.TextSize = 13
-    TabBtn.AutoButtonColor = false
-    Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 8)
-    local BtnScale = Instance.new("UIScale", TabBtn)
+    TabBtn.Size = UDim2.new(0.85, 0, 0, 32)
+    TabBtn.BackgroundColor3 = Colors.Accent
+    TabBtn.BackgroundTransparency = 1 -- ซ่อนสีพื้นหลังไว้ตอนแรก
+    TabBtn.Text = TabName; TabBtn.Font = Enum.Font.GothamMedium; TabBtn.TextColor3 = Colors.TextMuted; TabBtn.TextSize = 13; TabBtn.AutoButtonColor = false
+    Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 5)
 
-    -- หน้า Page ของ Tab นี้
+    -- Indicator (ขีดสีฟ้าด้านซ้ายสไตล์ Fluent)
+    local Indicator = Instance.new("Frame", TabBtn)
+    Indicator.Size = UDim2.new(0, 3, 0, 0)
+    Indicator.Position = UDim2.new(0, -5, 0.5, 0)
+    Indicator.AnchorPoint = Vector2.new(0, 0.5)
+    Indicator.BackgroundColor3 = Colors.Accent
+    Instance.new("UICorner", Indicator).CornerRadius = UDim.new(1, 0)
+
     local Page = Instance.new("ScrollingFrame", self.Container)
-    Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.BackgroundTransparency = 1
-    Page.ScrollBarThickness = 0
-    Page.Visible = false
-    
-    local PageLayout = Instance.new("UIListLayout", Page)
-    PageLayout.Padding = UDim.new(0, 10)
-    PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    
-    -- เก็บ Page ไว้ในตารางเพื่อใช้ซ่อน/โชว์
-    table.insert(self.Tabs, {Button = TabBtn, Page = Page})
+    Page.Size = UDim2.new(1, 0, 1, 0); Page.BackgroundTransparency = 1; Page.ScrollBarThickness = 2; Page.Visible = false
+    Page.ScrollBarImageColor3 = Colors.Stroke
+    local PageLayout = Instance.new("UIListLayout", Page); PageLayout.Padding = UDim.new(0, 8)
 
-    -- ระบบคลิกสลับ Tab พร้อมอนิเมชั่น
+    table.insert(self.Tabs, {Btn = TabBtn, Page = Page, Ind = Indicator})
+
     TabBtn.MouseButton1Click:Connect(function()
-        for _, tabInfo in pairs(self.Tabs) do
-            tabInfo.Page.Visible = false
-            Tween(tabInfo.Button, 0.3, {BackgroundColor3 = Color3.fromRGB(30, 30, 40), TextColor3 = Color3.fromRGB(200, 200, 200)})
+        for _, tab in pairs(self.Tabs) do
+            tab.Page.Visible = false
+            Tween(tab.Btn, 0.3, {BackgroundTransparency = 1, TextColor3 = Colors.TextMuted})
+            Tween(tab.Ind, 0.3, {Size = UDim2.new(0, 3, 0, 0)})
         end
         Page.Visible = true
-        Page.Position = UDim2.new(0, 30, 0, 0) -- เลื่อนมาจากขวานิดนึง
         Page.GroupTransparency = 1
-        Tween(Page, 0.4, {Position = UDim2.new(0, 0, 0, 0), GroupTransparency = 0}, Enum.EasingStyle.Quart)
-        Tween(TabBtn, 0.3, {BackgroundColor3 = Color3.fromRGB(80, 140, 255), TextColor3 = Color3.fromRGB(255, 255, 255)})
-        
-        -- อนิเมชั่นปุ่มเด้งตอนคลิก
-        Tween(BtnScale, 0.1, {Scale = 0.9})
-        task.wait(0.1)
-        Tween(BtnScale, 0.2, {Scale = 1}, Enum.EasingStyle.Back)
+        Tween(Page, 0.4, {GroupTransparency = 0})
+        Tween(TabBtn, 0.3, {BackgroundTransparency = 0.9, TextColor3 = Colors.Text})
+        Tween(Indicator, 0.3, {Size = UDim2.new(0, 3, 0.6, 0)})
     end)
 
-    -- โชว์หน้าแรกอัตโนมัติ
     if #self.Tabs == 1 then
         Page.Visible = true
-        TabBtn.BackgroundColor3 = Color3.fromRGB(80, 140, 255)
-        TabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabBtn.BackgroundTransparency = 0.9
+        TabBtn.TextColor3 = Colors.Text
+        Indicator.Size = UDim2.new(0, 3, 0.6, 0)
     end
 
     -- ==========================================
-    -- 3. ELEMENTS (ปุ่ม, สวิตช์, แถบเลื่อน ภายใน Tab)
+    -- 3. ELEMENTS (ปุ่ม, เปิดปิด, สไลเดอร์)
     -- ==========================================
     
-    -- [ BUTTON ]
     function TabFuncs:Button(text, callback)
         local Btn = Instance.new("TextButton", Page)
-        Btn.Size = UDim2.new(1, -10, 0, 40)
-        Btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        Btn.Text = text
-        Btn.Font = Enum.Font.GothamMedium
-        Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-        Btn.TextSize = 14
-        Btn.AutoButtonColor = false
-        Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
-        local Stroke = Instance.new("UIStroke", Btn)
-        Stroke.Color = Color3.fromRGB(60, 60, 70)
+        Btn.Size = UDim2.new(1, -10, 0, 36); Btn.BackgroundColor3 = Colors.ElementBg; Btn.Text = text; Btn.Font = Enum.Font.Gotham; Btn.TextColor3 = Colors.Text; Btn.TextSize = 13; Btn.AutoButtonColor = false
+        Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 5)
+        local Stroke = Instance.new("UIStroke", Btn); Stroke.Color = Colors.Stroke; Stroke.Transparency = 0.93
         
-        local BScale = Instance.new("UIScale", Btn)
+        Btn.MouseEnter:Connect(function() Tween(Btn, 0.2, {BackgroundColor3 = Colors.ElementHover}) end)
+        Btn.MouseLeave:Connect(function() Tween(Btn, 0.2, {BackgroundColor3 = Colors.ElementBg}) end)
+        Btn.MouseButton1Down:Connect(function() Tween(Btn, 0.1, {BackgroundTransparency = 0.2}) end)
+        Btn.MouseButton1Up:Connect(function() Tween(Btn, 0.1, {BackgroundTransparency = 0}); pcall(callback) end)
+    end
 
-        Btn.MouseEnter:Connect(function() Tween(BScale, 0.2, {Scale = 1.03}, Enum.EasingStyle.Back) Stroke.Color = Color3.fromRGB(80, 140, 255) end)
-        Btn.MouseLeave:Connect(function() Tween(BScale, 0.2, {Scale = 1}) Stroke.Color = Color3.fromRGB(60, 60, 70) end)
-        Btn.MouseButton1Click:Connect(function()
-            Tween(BScale, 0.1, {Scale = 0.95})
-            task.wait(0.1)
-            Tween(BScale, 0.2, {Scale = 1.03}, Enum.EasingStyle.Back)
-            pcall(callback)
+    function TabFuncs:Toggle(text, default, callback)
+        local state = default or false
+        local TglFrame = Instance.new("TextButton", Page)
+        TglFrame.Size = UDim2.new(1, -10, 0, 40); TglFrame.BackgroundColor3 = Colors.ElementBg; TglFrame.Text = ""; TglFrame.AutoButtonColor = false
+        Instance.new("UICorner", TglFrame).CornerRadius = UDim.new(0, 5)
+        local Stroke = Instance.new("UIStroke", TglFrame); Stroke.Color = Colors.Stroke; Stroke.Transparency = 0.93
+
+        local Label = Instance.new("TextLabel", TglFrame)
+        Label.Size = UDim2.new(1, -60, 1, 0); Label.Position = UDim2.new(0, 15, 0, 0); Label.BackgroundTransparency = 1; Label.Text = text; Label.Font = Enum.Font.Gotham; Label.TextColor3 = Colors.Text; Label.TextSize = 13; Label.TextXAlignment = Enum.TextXAlignment.Left
+
+        local Track = Instance.new("Frame", TglFrame)
+        Track.Size = UDim2.new(0, 36, 0, 18); Track.Position = UDim2.new(1, -50, 0.5, -9); Track.BackgroundColor3 = state and Colors.Accent or Color3.fromRGB(30, 30, 30)
+        Instance.new("UICorner", Track).CornerRadius = UDim.new(1, 0)
+        local TrackStroke = Instance.new("UIStroke", Track); TrackStroke.Color = Colors.Stroke; TrackStroke.Transparency = state and 1 or 0.6
+
+        local Dot = Instance.new("Frame", Track)
+        Dot.Size = UDim2.new(0, 12, 0, 12); Dot.Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6); Dot.BackgroundColor3 = state and Color3.new(0,0,0) or Colors.TextMuted
+        Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
+
+        TglFrame.MouseButton1Click:Connect(function()
+            state = not state
+            Tween(Track, 0.3, {BackgroundColor3 = state and Colors.Accent or Color3.fromRGB(30, 30, 30)})
+            Tween(TrackStroke, 0.3, {Transparency = state and 1 or 0.6})
+            Tween(Dot, 0.3, {Position = state and UDim2.new(1, -15, 0.5, -6) or UDim2.new(0, 3, 0.5, -6), BackgroundColor3 = state and Color3.new(0,0,0) or Colors.TextMuted})
+            pcall(callback, state)
         end)
     end
 
-    -- [ TOGGLE ]
-    function TabFuncs:Toggle(text, default, callback)
-        local state = default or false
-        local TglFrame = Instance.new("Frame", Page)
-        TglFrame.Size = UDim2.new(1, -10, 0, 40)
-        TglFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        Instance.new("UICorner", TglFrame).CornerRadius = UDim.new(0, 8)
-        Instance.new("UIStroke", TglFrame).Color = Color3.fromRGB(60, 60, 70)
+    function TabFuncs:Slider(text, min, max, default, callback)
+        local val = math.clamp(default or min, min, max)
+        local SliderFrame = Instance.new("Frame", Page)
+        SliderFrame.Size = UDim2.new(1, -10, 0, 50); SliderFrame.BackgroundColor3 = Colors.ElementBg
+        Instance.new("UICorner", SliderFrame).CornerRadius = UDim.new(0, 5)
+        local Stroke = Instance.new("UIStroke", SliderFrame); Stroke.Color = Colors.Stroke; Stroke.Transparency = 0.93
 
-        local Label = Instance.new("TextLabel", TglFrame)
-        Label.Size = UDim2.new(1, -60, 1, 0); Label.Position = UDim2.new(0, 15, 0, 0)
-        Label.BackgroundTransparency = 1; Label.Text = text; Label.Font = Enum.Font.GothamMedium; Label.TextColor3 = Color3.new(1,1,1); Label.TextSize = 14; Label.TextXAlignment = Enum.TextXAlignment.Left
+        local Label = Instance.new("TextLabel", SliderFrame)
+        Label.Size = UDim2.new(1, -20, 0, 25); Label.Position = UDim2.new(0, 10, 0, 0); Label.BackgroundTransparency = 1; Label.Text = text; Label.Font = Enum.Font.Gotham; Label.TextColor3 = Colors.Text; Label.TextSize = 13; Label.TextXAlignment = Enum.TextXAlignment.Left
 
-        local TglBtn = Instance.new("TextButton", TglFrame)
-        TglBtn.Size = UDim2.new(0, 40, 0, 20); TglBtn.Position = UDim2.new(1, -55, 0.5, -10)
-        TglBtn.BackgroundColor3 = state and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(20, 20, 25)
-        TglBtn.Text = ""; TglBtn.AutoButtonColor = false
-        Instance.new("UICorner", TglBtn).CornerRadius = UDim.new(1, 0)
+        local ValLabel = Instance.new("TextLabel", SliderFrame)
+        ValLabel.Size = UDim2.new(0, 50, 0, 25); ValLabel.Position = UDim2.new(1, -60, 0, 0); ValLabel.BackgroundTransparency = 1; ValLabel.Text = tostring(val); ValLabel.Font = Enum.Font.Gotham; ValLabel.TextColor3 = Colors.Accent; ValLabel.TextSize = 13; ValLabel.TextXAlignment = Enum.TextXAlignment.Right
 
-        local Circle = Instance.new("Frame", TglBtn)
-        Circle.Size = UDim2.new(0, 16, 0, 16)
-        Circle.Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-        Circle.BackgroundColor3 = Color3.new(1,1,1)
-        Instance.new("UICorner", Circle).CornerRadius = UDim.new(1, 0)
+        local BarArea = Instance.new("TextButton", SliderFrame)
+        BarArea.Size = UDim2.new(1, -20, 0, 15); BarArea.Position = UDim2.new(0, 10, 0, 25); BarArea.BackgroundTransparency = 1; BarArea.Text = ""
 
-        TglBtn.MouseButton1Click:Connect(function()
-            state = not state
-            Tween(Circle, 0.3, {Position = state and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, Enum.EasingStyle.Quart)
-            Tween(TglBtn, 0.3, {BackgroundColor3 = state and Color3.fromRGB(80, 140, 255) or Color3.fromRGB(20, 20, 25)})
-            pcall(callback, state)
+        local BgBar = Instance.new("Frame", BarArea)
+        BgBar.Size = UDim2.new(1, 0, 0, 4); BgBar.Position = UDim2.new(0, 0, 0.5, -2); BgBar.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+        Instance.new("UICorner", BgBar).CornerRadius = UDim.new(1, 0)
+
+        local FillBar = Instance.new("Frame", BgBar)
+        FillBar.Size = UDim2.new((val - min) / (max - min), 0, 1, 0); FillBar.BackgroundColor3 = Colors.Accent
+        Instance.new("UICorner", FillBar).CornerRadius = UDim.new(1, 0)
+
+        local Dot = Instance.new("Frame", FillBar)
+        Dot.Size = UDim2.new(0, 12, 0, 12); Dot.Position = UDim2.new(1, -6, 0.5, -6); Dot.BackgroundColor3 = Colors.Text
+        Instance.new("UICorner", Dot).CornerRadius = UDim.new(1, 0)
+
+        local dragging = false
+        local function update(input)
+            local percent = math.clamp((input.Position.X - BgBar.AbsolutePosition.X) / BgBar.AbsoluteSize.X, 0, 1)
+            val = math.floor(min + ((max - min) * percent))
+            Tween(FillBar, 0.1, {Size = UDim2.new(percent, 0, 1, 0)})
+            ValLabel.Text = tostring(val)
+            pcall(callback, val)
+        end
+
+        BarArea.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; update(input) end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then update(input) end
         end)
     end
 
     return TabFuncs
 end
 
-return Library
+return FluentLib
