@@ -32,6 +32,9 @@ local Theme = {
 	Accent = Color3.fromRGB(80, 80, 255),
 	ToggleOff = Color3.fromRGB(220, 220, 225),
 	ToggleOn = Color3.fromRGB(80, 80, 255),
+	GlassColor = Color3.fromRGB(255, 255, 255), -- สีของกระจก (ปรับเป็นสีอะไรก็ได้)
+	GlassTransparency = 0.2,                   -- ความใส (0 = ทึบ, 1 = ใสแจ๋ว)
+	BlurIntensity = 0.5,                       -- ความฟุ้ง (ใช้ UIStroke ช่วย)
 }
 
 -- [[ PRIVATE HELPERS ]]
@@ -171,6 +174,40 @@ function Library.new(titleText)
 	end)
 
 	return self
+end
+
+-- [[ METHOD: สร้างหน้าโปรไฟล์แบบกระจก ]]
+function Library:CreateProfileSettings()
+	-- สร้างหัวข้อในหน้า Setting
+	local profileHeader = Instance.new("Frame", self.SettingPage)
+	profileHeader.Size = UDim2.new(1, -10, 0, 150)
+	profileHeader.BackgroundColor3 = Theme.GlassColor
+	profileHeader.BackgroundTransparency = Theme.GlassTransparency -- ความใสแบบกระจก
+	profileHeader.BorderSizePixel = 0
+	
+	-- เส้นขอบกระจก (ทำให้ดูเหมือนกระจกจริง)
+	local glassStroke = Instance.new("UIStroke", profileHeader)
+	glassStroke.Color = Color3.new(1, 1, 1)
+	glassStroke.Transparency = 0.6
+	glassStroke.Thickness = 1.5
+
+	Instance.new("UICorner", profileHeader).CornerRadius = UDim.new(0, 15)
+
+	-- ปุ่มปรับสีพื้นหลัง (Color Picker แบบง่าย)
+	self:CreateButton("เปลี่ยนเป็นสีฟ้ากระจก", self.SettingPage, function()
+		QuickTween(self.MainFrame, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = Color3.fromRGB(180, 210, 255)})
+		profileHeader.BackgroundColor3 = Color3.fromRGB(180, 210, 255)
+	end)
+
+	self:CreateButton("เปลี่ยนเป็นสีชมพูใส", self.SettingPage, function()
+		QuickTween(self.MainFrame, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = Color3.fromRGB(255, 200, 220)})
+		profileHeader.BackgroundColor3 = Color3.fromRGB(255, 200, 220)
+	end)
+	
+	self:CreateButton("กลับเป็นสีขาว Minimal", self.SettingPage, function()
+		QuickTween(self.MainFrame, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = Color3.fromRGB(245, 245, 250)})
+		profileHeader.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	end)
 end
 
 function Library:CreateButton(text, page, callback)
