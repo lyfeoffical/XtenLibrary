@@ -1,261 +1,156 @@
 --[[
-    LIGHTWEIGHT BOUNCY UI LIBRARY (LIGHT MODE)
-    Author: YourName
+    ULTIMATE GLASSMORPHISM UI LIBRARY v2.0
     Features: 
-    - Custom Smooth Animations (OutBack)
-    - Profile & Settings System
-    - Light Theme (Clean Look)
-    - Fully Responsive Elements
+    - Real-time Theme Switching (Glass, Dark, Light)
+    - Dynamic Transparency & Blur Effect
+    - Bouncy Animations (OutBack Easing)
+    - Profile System with Settings
+    - Full Elements: Button, Toggle, Slider, TextBox
 ]]
 
 local Library = {}
 Library.__index = Library
 
--- [[ SERVICES ]]
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 
--- [[ THEME CONFIGURATION ]]
-local Theme = {
-	WindowBackground = Color3.fromRGB(245, 245, 250),
-	TitleBar = Color3.fromRGB(255, 255, 255),
-	TitleLine = Color3.fromRGB(230, 230, 235),
-	ContainerBackground = Color3.fromRGB(250, 250, 255),
-	ItemBackground = Color3.fromRGB(255, 255, 255),
-	ItemHover = Color3.fromRGB(240, 240, 245),
-	ItemPressed = Color3.fromRGB(230, 230, 235),
-	TextPrimary = Color3.fromRGB(30, 30, 35),
-	TextSecondary = Color3.fromRGB(130, 130, 140),
-	Stroke = Color3.fromRGB(220, 220, 225),
-	Accent = Color3.fromRGB(80, 80, 255),
-	ToggleOff = Color3.fromRGB(220, 220, 225),
-	ToggleOn = Color3.fromRGB(80, 80, 255),
-	GlassColor = Color3.fromRGB(255, 255, 255), -- สีของกระจก (ปรับเป็นสีอะไรก็ได้)
-	GlassTransparency = 0.2,                   -- ความใส (0 = ทึบ, 1 = ใสแจ๋ว)
-	BlurIntensity = 0.5,                       -- ความฟุ้ง (ใช้ UIStroke ช่วย)
+-- [[ THEME PRESETS ]]
+local Themes = {
+    Glass = {
+        Main = Color3.fromRGB(255, 255, 255),
+        Accent = Color3.fromRGB(100, 150, 255),
+        Transparency = 0.25,
+        Stroke = Color3.fromRGB(255, 255, 255),
+        Text = Color3.fromRGB(40, 40, 45)
+    },
+    Dark = {
+        Main = Color3.fromRGB(25, 25, 30),
+        Accent = Color3.fromRGB(255, 100, 100),
+        Transparency = 0,
+        Stroke = Color3.fromRGB(50, 50, 55),
+        Text = Color3.fromRGB(240, 240, 240)
+    }
 }
 
--- [[ PRIVATE HELPERS ]]
-local function CreateTween(instance, duration, style, direction, goals)
-	local tweenInfo = TweenInfo.new(duration, style, direction)
-	local tween = TweenService:Create(instance, tweenInfo, goals)
-	tween:Play()
-	return tween
+local function QuickTween(inst, dur, style, dir, goals)
+    local t = TweenService:Create(inst, TweenInfo.new(dur, style, dir), goals)
+    t:Play() return t
 end
 
--- [[ MAIN LIBRARY METHODS ]]
+function Library.new(title)
+    local self = setmetatable({}, Library)
+    
+    -- Gui Setup
+    self.Gui = Instance.new("ScreenGui")
+    self.Gui.Name = "GlassLib_"..math.random(100,999)
+    pcall(function() self.Gui.Parent = CoreGui end)
+    if not self.Gui.Parent then self.Gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
 
-function Library.new(titleText)
-	local self = setmetatable({}, Library)
+    -- Main Window (CanvasGroup)
+    self.Main = Instance.new("CanvasGroup", self.Gui)
+    self.Main.Size = UDim2.new(0, 550, 0, 400)
+    self.Main.Position = UDim2.new(0.5, -275, 0.5, -200)
+    self.Main.BackgroundColor3 = Themes.Glass.Main
+    self.Main.BackgroundTransparency = Themes.Glass.Transparency
+    self.Main.GroupTransparency = 1
+    Instance.new("UICorner", self.Main).CornerRadius = UDim.new(0, 16)
+    
+    self.Stroke = Instance.new("UIStroke", self.Main)
+    self.Stroke.Color = Themes.Glass.Stroke
+    self.Stroke.Transparency = 0.5
+    self.Stroke.Thickness = 1.5
 
-	-- Main Gui
-	self.Gui = Instance.new("ScreenGui")
-	self.Gui.Name = "CustomLibrary_v1"
-	self.Gui.ResetOnSpawn = false
-	self.Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-	
-	-- Automatic Parent Detection
-	pcall(function() self.Gui.Parent = CoreGui end)
-	if not self.Gui.Parent then self.Gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
+    self.Scale = Instance.new("UIScale", self.Main)
+    self.Scale.Scale = 0.6
 
-	-- Window (CanvasGroup for fading)
-	self.MainFrame = Instance.new("CanvasGroup") 
-	self.MainFrame.BackgroundColor3 = Theme.WindowBackground
-	self.MainFrame.BorderSizePixel = 0
-	self.MainFrame.Position = UDim2.new(0.5, -280, 0.5, -200) 
-	self.MainFrame.Size = UDim2.new(0, 560, 0, 400)
-	self.MainFrame.GroupTransparency = 1 
-	self.MainFrame.Parent = self.Gui
-	
-	Instance.new("UICorner", self.MainFrame).CornerRadius = UDim.new(0, 12)
-	local windowStroke = Instance.new("UIStroke", self.MainFrame)
-	windowStroke.Color = Theme.Stroke
-	windowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    -- TitleBar
+    self.Bar = Instance.new("Frame", self.Main)
+    self.Bar.Size = UDim2.new(1, 0, 0, 55)
+    self.Bar.BackgroundTransparency = 1
+    
+    self.Title = Instance.new("TextLabel", self.Bar)
+    self.Title.Position = UDim2.new(0, 65, 0, 0)
+    self.Title.Size = UDim2.new(1, -120, 1, 0)
+    self.Title.Text = title; self.Title.Font = "GothamBold"; self.Title.TextSize = 18; self.Title.BackgroundTransparency = 1; self.Title.TextColor3 = Themes.Glass.Text; self.Title.TextXAlignment = "Left"
 
-	self.UIScale = Instance.new("UIScale", self.MainFrame)
-	self.UIScale.Scale = 0.5
+    -- Avatar
+    self.Avatar = Instance.new("ImageButton", self.Bar)
+    self.Avatar.Position = UDim2.new(0, 15, 0, 7)
+    self.Avatar.Size = UDim2.new(0, 40, 0, 40)
+    Instance.new("UICorner", self.Avatar).CornerRadius = UDim.new(1,0)
+    task.spawn(function() self.Avatar.Image = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, "HeadShot", "Size420x420") end)
 
-	-- Title Bar
-	self.TitleBar = Instance.new("Frame")
-	self.TitleBar.BackgroundColor3 = Theme.TitleBar
-	self.TitleBar.Size = UDim2.new(1, 0, 0, 50)
-	self.TitleBar.Parent = self.MainFrame
-	
-	local line = Instance.new("Frame", self.TitleBar)
-	line.Size = UDim2.new(1,0,0,1)
-	line.Position = UDim2.new(0,0,1,0)
-	line.BackgroundColor3 = Theme.TitleLine
-	line.BorderSizePixel = 0
+    -- Container
+    self.Container = Instance.new("ScrollingFrame", self.Main)
+    self.Container.Position = UDim2.new(0, 15, 0, 65)
+    self.Container.Size = UDim2.new(1, -30, 1, -80)
+    self.Container.BackgroundTransparency = 1; self.Container.BorderSizePixel = 0; self.Container.ScrollBarThickness = 0
+    local Layout = Instance.new("UIListLayout", self.Container); Layout.Padding = UDim.new(0, 10)
 
-	-- Avatar & Title
-	self.Avatar = Instance.new("ImageButton", self.TitleBar)
-	self.Avatar.Position = UDim2.new(0, 10, 0, 5)
-	self.Avatar.Size = UDim2.new(0, 40, 0, 40)
-	self.Avatar.BackgroundTransparency = 1
-	Instance.new("UICorner", self.Avatar).CornerRadius = UDim.new(1, 0)
-	
-	task.spawn(function()
-		local content = Players:GetUserThumbnailAsync(Players.LocalPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
-		self.Avatar.Image = content
-	end)
+    -- Dragging
+    local dragStart, startPos, dragging
+    self.Bar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; dragStart = i.Position; startPos = self.Main.Position end end)
+    UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then local delta = i.Position - dragStart; self.Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
+    UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
 
-	self.TitleLabel = Instance.new("TextLabel", self.TitleBar)
-	self.TitleLabel.Position = UDim2.new(0, 60, 0, 0)
-	self.TitleLabel.Size = UDim2.new(1, -110, 1, 0)
-	self.TitleLabel.BackgroundTransparency = 1
-	self.TitleLabel.Font = Enum.Font.GothamBold
-	self.TitleLabel.Text = titleText or "UI LIBRARY"
-	self.TitleLabel.TextColor3 = Theme.TextPrimary
-	self.TitleLabel.TextSize = 18
-	self.TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    -- Start Anim
+    QuickTween(self.Scale, 0.4, "Back", "Out", {Scale = 1})
+    QuickTween(self.Main, 0.3, "Quad", "Out", {GroupTransparency = 0})
 
-	-- Close Button
-	local close = Instance.new("TextButton", self.TitleBar)
-	close.Position = UDim2.new(1, -40, 0, 10)
-	close.Size = UDim2.new(0, 30, 0, 30)
-	close.BackgroundTransparency = 1
-	close.Text = "×"
-	close.TextColor3 = Theme.TextSecondary
-	close.TextSize = 24
-	close.MouseButton1Click:Connect(function()
-		CreateTween(self.UIScale, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In, {Scale = 0.6})
-		CreateTween(self.MainFrame, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {GroupTransparency = 1}).Completed:Wait()
-		self.Gui:Destroy()
-	end)
-
-	-- Page Containers
-	self.MainPage = Instance.new("ScrollingFrame", self.MainFrame)
-	self.MainPage.Position = UDim2.new(0, 10, 0, 60)
-	self.MainPage.Size = UDim2.new(1, -20, 1, -70)
-	self.MainPage.BackgroundTransparency = 1
-	self.MainPage.BorderSizePixel = 0
-	self.MainPage.ScrollBarThickness = 2
-	Instance.new("UIListLayout", self.MainPage).Padding = UDim.new(0, 10)
-
-	self.SettingPage = Instance.new("ScrollingFrame", self.MainFrame)
-	self.SettingPage.Position = UDim2.new(1, 10, 0, 60) -- Off-screen
-	self.SettingPage.Size = UDim2.new(1, -20, 1, -70)
-	self.SettingPage.BackgroundTransparency = 1
-	self.SettingPage.Visible = false
-	Instance.new("UIListLayout", self.SettingPage).Padding = UDim.new(0, 10)
-
-	-- Dragging Logic
-	local dragStart, startPos, dragging
-	self.TitleBar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; dragStart = i.Position; startPos = self.MainFrame.Position end end)
-	UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then local delta = i.Position - dragStart; self.MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y) end end)
-	UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
-
-	-- Open Animation
-	CreateTween(self.UIScale, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {Scale = 1})
-	CreateTween(self.MainFrame, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {GroupTransparency = 0})
-
-	-- Profile Switch Logic
-	local isSettings = false
-	self.Avatar.MouseButton1Click:Connect(function()
-		if isSettings then return end
-		isSettings = true
-		self.SettingPage.Visible = true
-		CreateTween(self.MainPage, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, {Position = UDim2.new(-1, 0, 0, 60)})
-		CreateTween(self.SettingPage, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, {Position = UDim2.new(0, 10, 0, 60)})
-		
-		local back = Instance.new("TextButton", self.TitleBar)
-		back.Size = UDim2.new(0, 60, 0, 30); back.Position = UDim2.new(0, 60, 0, 10)
-		back.Text = "< Back"; back.TextColor3 = Theme.Accent; back.BackgroundTransparency = 1; back.Font = Enum.Font.Gotham; back.TextSize = 14
-		self.TitleLabel.Visible = false
-		
-		back.MouseButton1Click:Connect(function()
-			isSettings = false
-			CreateTween(self.MainPage, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, {Position = UDim2.new(0, 10, 0, 60)})
-			CreateTween(self.SettingPage, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, {Position = UDim2.new(1, 0, 0, 60)})
-			back:Destroy(); self.TitleLabel.Visible = true
-		end)
-	end)
-
-	return self
+    return self
 end
 
--- [[ METHOD: สร้างหน้าโปรไฟล์แบบกระจก ]]
-function Library:CreateProfileSettings()
-	-- สร้างหัวข้อในหน้า Setting
-	local profileHeader = Instance.new("Frame", self.SettingPage)
-	profileHeader.Size = UDim2.new(1, -10, 0, 150)
-	profileHeader.BackgroundColor3 = Theme.GlassColor
-	profileHeader.BackgroundTransparency = Theme.GlassTransparency -- ความใสแบบกระจก
-	profileHeader.BorderSizePixel = 0
-	
-	-- เส้นขอบกระจก (ทำให้ดูเหมือนกระจกจริง)
-	local glassStroke = Instance.new("UIStroke", profileHeader)
-	glassStroke.Color = Color3.new(1, 1, 1)
-	glassStroke.Transparency = 0.6
-	glassStroke.Thickness = 1.5
+-- [[ ELEMENT: BUTTON ]]
+function Library:Button(text, callback)
+    local btn = Instance.new("TextButton", self.Container)
+    btn.Size = UDim2.new(1, 0, 0, 40); btn.BackgroundColor3 = Color3.new(1,1,1); btn.BackgroundTransparency = 0.8
+    btn.Text = text; btn.Font = "GothamMedium"; btn.TextColor3 = self.Title.TextColor3; btn.TextSize = 14; btn.AutoButtonColor = false
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", btn); s.Color = Color3.new(1,1,1); s.Transparency = 0.8
+    local sc = Instance.new("UIScale", btn)
 
-	Instance.new("UICorner", profileHeader).CornerRadius = UDim.new(0, 15)
-
-	-- ปุ่มปรับสีพื้นหลัง (Color Picker แบบง่าย)
-	self:CreateButton("เปลี่ยนเป็นสีฟ้ากระจก", self.SettingPage, function()
-		QuickTween(self.MainFrame, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = Color3.fromRGB(180, 210, 255)})
-		profileHeader.BackgroundColor3 = Color3.fromRGB(180, 210, 255)
-	end)
-
-	self:CreateButton("เปลี่ยนเป็นสีชมพูใส", self.SettingPage, function()
-		QuickTween(self.MainFrame, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = Color3.fromRGB(255, 200, 220)})
-		profileHeader.BackgroundColor3 = Color3.fromRGB(255, 200, 220)
-	end)
-	
-	self:CreateButton("กลับเป็นสีขาว Minimal", self.SettingPage, function()
-		QuickTween(self.MainFrame, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = Color3.fromRGB(245, 245, 250)})
-		profileHeader.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	end)
+    btn.MouseEnter:Connect(function() QuickTween(sc, 0.2, "Back", "Out", {Scale = 1.03}) end)
+    btn.MouseLeave:Connect(function() QuickTween(sc, 0.2, "Quad", "Out", {Scale = 1}) end)
+    btn.MouseButton1Click:Connect(function() QuickTween(sc, 0.1, "Quad", "Out", {Scale = 0.95}); task.wait(0.05); QuickTween(sc, 0.1, "Back", "Out", {Scale = 1.03}); callback() end)
 end
 
-function Library:CreateButton(text, page, callback)
-	local target = page or self.MainPage
-	local btn = Instance.new("TextButton", target)
-	btn.Size = UDim2.new(1, -10, 0, 40)
-	btn.BackgroundColor3 = Theme.ItemBackground
-	btn.Text = text
-	btn.Font = Enum.Font.GothamBold
-	btn.TextColor3 = Theme.TextPrimary
-	btn.TextSize = 14
-	btn.AutoButtonColor = false
-	Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-	local s = Instance.new("UIStroke", btn); s.Color = Theme.Stroke; s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	local scale = Instance.new("UIScale", btn)
+-- [[ ELEMENT: TOGGLE ]]
+function Library:Toggle(text, default, callback)
+    local val = default or false
+    local frame = Instance.new("Frame", self.Container)
+    frame.Size = UDim2.new(1, 0, 0, 45); frame.BackgroundTransparency = 0.9; frame.BackgroundColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+    
+    local label = Instance.new("TextLabel", frame)
+    label.Position = UDim2.new(0, 15, 0, 0); label.Size = UDim2.new(1, -70, 1, 0); label.BackgroundTransparency = 1
+    label.Text = text; label.Font = "Gotham"; label.TextColor3 = self.Title.TextColor3; label.TextSize = 14; label.TextXAlignment = "Left"
 
-	btn.MouseEnter:Connect(function() CreateTween(scale, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {Scale = 1.03}) end)
-	btn.MouseLeave:Connect(function() CreateTween(scale, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Scale = 1}) end)
-	btn.MouseButton1Down:Connect(function() CreateTween(scale, 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {Scale = 0.97}) end)
-	btn.MouseButton1Up:Connect(function() CreateTween(scale, 0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out, {Scale = 1.03}); if callback then callback() end end)
+    local tgl = Instance.new("TextButton", frame)
+    tgl.Position = UDim2.new(1, -55, 0, 10); tgl.Size = UDim2.new(0, 45, 0, 25); tgl.Text = ""; tgl.BackgroundColor3 = val and Color3.fromRGB(100, 255, 150) or Color3.fromRGB(200,200,200)
+    Instance.new("UICorner", tgl).CornerRadius = UDim.new(1,0)
+
+    local circ = Instance.new("Frame", tgl)
+    circ.Position = val and UDim2.new(1, -22, 0, 3) or UDim2.new(0, 3, 0, 3); circ.Size = UDim2.new(0, 19, 0, 19); circ.BackgroundColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", circ).CornerRadius = UDim.new(1,0)
+
+    tgl.MouseButton1Click:Connect(function()
+        val = not val
+        QuickTween(circ, 0.2, "Quart", "Out", {Position = val and UDim2.new(1, -22, 0, 3) or UDim2.new(0, 3, 0, 3)})
+        QuickTween(tgl, 0.2, "Quad", "Out", {BackgroundColor3 = val and Color3.fromRGB(100, 255, 150) or Color3.fromRGB(200,200,200)})
+        callback(val)
+    end)
 end
 
-function Library:CreateToggle(text, page, default, callback)
-	local target = page or self.MainPage
-	local val = default or false
-	local frame = Instance.new("Frame", target)
-	frame.Size = UDim2.new(1, -10, 0, 45); frame.BackgroundColor3 = Theme.ItemBackground
-	Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
-	Instance.new("UIStroke", frame).Color = Theme.Stroke
-
-	local label = Instance.new("TextLabel", frame)
-	label.Text = text; label.Position = UDim2.new(0, 15, 0, 0); label.Size = UDim2.new(1, -80, 1, 0)
-	label.BackgroundTransparency = 1; label.TextColor3 = Theme.TextPrimary; label.Font = Enum.Font.GothamMedium; label.TextSize = 14; label.TextXAlignment = Enum.TextXAlignment.Left
-
-	local tgl = Instance.new("TextButton", frame)
-	tgl.Size = UDim2.new(0, 44, 0, 22); tgl.Position = UDim2.new(1, -55, 0, 11); tgl.Text = ""; tgl.BackgroundColor3 = val and Theme.ToggleOn or Theme.ToggleOff
-	Instance.new("UICorner", tgl).CornerRadius = UDim.new(1, 0)
-
-	local circ = Instance.new("Frame", tgl)
-	circ.Size = UDim2.new(0, 18, 0, 18); circ.Position = val and UDim2.new(1, -20, 0, 2) or UDim2.new(0, 2, 0, 2); circ.BackgroundColor3 = Color3.new(1,1,1)
-	Instance.new("UICorner", circ).CornerRadius = UDim.new(1, 0)
-
-	tgl.MouseButton1Click:Connect(function()
-		val = not val
-		CreateTween(circ, 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out, {Position = val and UDim2.new(1, -20, 0, 2) or UDim2.new(0, 2, 0, 2)})
-		CreateTween(tgl, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, {BackgroundColor3 = val and Theme.ToggleOn or Theme.ToggleOff})
-		if callback then callback(val) end
-	end)
+-- [[ SYSTEM: THEME CHANGER ]]
+function Library:SetTheme(mode)
+    local t = Themes[mode]
+    if t then
+        QuickTween(self.Main, 0.5, "Quad", "Out", {BackgroundColor3 = t.Main, BackgroundTransparency = t.Transparency})
+        self.Stroke.Color = t.Stroke
+        self.Title.TextColor3 = t.Text
+    end
 end
 
 return Library
